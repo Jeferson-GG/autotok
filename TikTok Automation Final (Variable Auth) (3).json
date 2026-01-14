@@ -1,0 +1,281 @@
+{
+  "name": "TikTok Automation Final (Variable Auth)",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"access_token\": \"{{ $json.access_token }}\",\n  \"refresh_token\": \"{{ $json.refresh_token }}\",\n  \"instructions\": \"TOKEN OBTIDO! Copie o 'access_token' acima.\"\n}",
+        "options": {}
+      },
+      "id": "15e50100-b827-4a42-8e8a-8c3c5e3e8396",
+      "name": "Show Token",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        22080,
+        7200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.tiktokapis.com/v2/oauth/token/",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "client_key",
+              "value": "sbawwmi043ldszzl4r"
+            },
+            {
+              "name": "client_secret",
+              "value": "a6R4akOwP9AriXNB5xcqdkzapIpPw1zX"
+            },
+            {
+              "name": "code",
+              "value": "={{ $json.query.code }}"
+            },
+            {
+              "name": "grant_type",
+              "value": "authorization_code"
+            },
+            {
+              "name": "redirect_uri",
+              "value": "https://n8n.ggsolution.site/webhook-test/tiktok-callback"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "24dc501c-cea2-4561-8932-239795e90018",
+      "name": "Get Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        21872,
+        7200
+      ]
+    },
+    {
+      "parameters": {
+        "path": "tiktok-callback",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ef9b6c42-2372-4457-a8b0-009eaaa96ff8",
+      "name": "Callback Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        21648,
+        7200
+      ],
+      "webhookId": "tiktok-callback"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "<!DOCTYPE html>\n<html>\n<head>\n<title>Connect TikTok</title>\n<style>\n  body { font-family: sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; }\n  .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }\n  h1 { margin-bottom: 24px; color: #333; }\n  .btn { display: block; margin: 10px auto; background-color: #000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; width: 100%; box-sizing: border-box; }\n  .btn:hover { opacity: 0.9; }\n</style>\n</head>\n<body>\n  <div class=\"card\">\n    <h1>TikTok Integration</h1>\n    <a class=\"btn\" href=\"https://www.tiktok.com/v2/auth/authorize/?client_key=sbawwmi043ldszzl4r&response_type=code&scope=user.info.basic,video.publish,video.upload&redirect_uri=https%3A%2F%2Fn8n.ggsolution.site%2Fwebhook-test%2Ftiktok-callback&state=random123\">Connect TikTok</a>\n  </div>\n</body>\n</html>",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html"
+              }
+            ]
+          }
+        }
+      },
+      "id": "5734c067-1c5b-4b48-9b41-6055ffa540c1",
+      "name": "Serve HTML Page",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        21872,
+        6992
+      ]
+    },
+    {
+      "parameters": {
+        "path": "tiktok-login",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c4d30524-3c11-4abd-870a-946868e8ae2e",
+      "name": "Start Login (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        21648,
+        6992
+      ],
+      "webhookId": "tiktok-login"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "token",
+              "name": "access_token",
+              "value": "={{ $('Get Token').item.json.access_token }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bde2b00d-082a-4ca2-b57b-e882070485ce",
+      "name": "Set Credentials",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        22352,
+        7216
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "5f1e9d02-b2c5-44ad-86c9-aa3924d2e79c",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        22208,
+        6992
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.tiktokapis.com/v2/post/publish/video/init/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Set Credentials').item.json.access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "post_info.title",
+              "value": "Test Video from n8n (Link)"
+            },
+            {
+              "name": "post_info.privacy_level",
+              "value": "SELF_ONLY"
+            },
+            {
+              "name": "source_info.source",
+              "value": "PULL_FROM_URL"
+            },
+            {
+              "name": "source_info.video_url",
+              "value": "https://files.ggsolution.site/video.mp4"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5cfcf572-82ee-4b85-8a0d-7e24e7282cd6",
+      "name": "Init Upload (URL)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        22544,
+        7216
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Token": {
+      "main": [
+        [
+          {
+            "node": "Show Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Callback Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Login (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Serve HTML Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Show Token": {
+      "main": [
+        [
+          {
+            "node": "Set Credentials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Credentials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Credentials": {
+      "main": [
+        [
+          {
+            "node": "Init Upload (URL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "1a08dd22-7bd1-44ca-b2ff-240948113cf6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1339ae6b711909a56850cd892d393b6a6e8b2d5692db9fa7064955264949bb4e"
+  },
+  "id": "N1zf5L1R8v0z18sX",
+  "tags": []
+}
